@@ -7,67 +7,82 @@ import java.util.Date;
 
 import okhttp3.*;
 import okio.Buffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 
 @Service
 public class BackendService {
 
-    //private List<Employee> employees;
     private final String BASE_URL = "http://4517controllernoss-sneumannhny2020-imcoi9k6.srv.ravcloud.com:9080/events/query";
+
+
+    private final String ACCOUNT_ID = "customer1_4057dd43-b852-4d2b-870c-fd0a03464d01";
+    private final String API_KEY = "c17ee2d5-1047-4188-8958-9f465f54c564";
+    private final String RESULT_SET_LIMIT = "20000";
+
+    private static final Logger LOGGER= LoggerFactory.getLogger(BackendService.class);
 
     private final OkHttpClient httpClient = new OkHttpClient();
 
-
-    public static final MediaType JSON
+    // for some reason the events service expects a blank media type for the body, WTFF??
+    public static final MediaType BLANK
             = MediaType.parse("");
 
-    public void runQuery(String index1, String index2, String key, String query) {
 
-        //OkHttpClient client = new OkHttpClient();
-
-        System.out.println("running query");
-
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+    public void doAggregation(String index1, String index2, String key, String query){
 
 
 
-        String dateNowString = format.format( new Date()   );
+        Response resultSet1 = runQuery(index1);
+        //LOGGER.info("resultSet1: " + resultSet1.body().string());
+        Response resultSet2 = runQuery(index2);
+        //LOGGER.info("resultSet2: " + resultSet2.body().string());
 
+
+
+
+    }
+
+    Response runQuery(String index) {
+
+
+        LOGGER.info("running query");
+
+        Date now = new Date();
         Date datePastHour = new Date(System.currentTimeMillis() - (1 * 60 * 60 * 1000));
 
-        String datePastHourString = format.format( datePastHour  );
+        //String datePastHourString = datePastHour.getTime().
 
-//        RequestBody formBody = new FormBody.Builder()
-//                //.add("label", "combo_query")
-//                //.add("SELECT * FROM transactions")
-//                .addEncoded("query", "SELECT * FROM transactions")
-//                //.add("limit", "100")
-//                //.add("start", datePastHourString)
-//                //.add("end", dateNowString)
-//                .build();
-        RequestBody body = RequestBody.create(JSON,"SELECT * FROM transactions");
+        //append date
+        String apiUrl = BASE_URL + "?start="+datePastHour.getTime()+"&end="+now.getTime()+"&limit=" + RESULT_SET_LIMIT;
+
+        //ADQL
+        RequestBody body = RequestBody.create(BLANK,"SELECT * FROM "+index);
 
         Request request = new Request.Builder()
-                .url(BASE_URL)
-                .addHeader("X-Events-API-AccountName", "customer1_4057dd43-b852-4d2b-870c-fd0a03464d01")
-                .addHeader("X-Events-API-Key", "c17ee2d5-1047-4188-8958-9f465f54c564")
+                .url(apiUrl)
+                .addHeader("X-Events-API-AccountName", ACCOUNT_ID)
+                .addHeader("X-Events-API-Key", API_KEY)
                 .addHeader("Content-Type", "application/vnd.appd.events+json;v=2")
                 .addHeader("Accept", "application/vnd.appd.events+json;v=2")
                 .post(body)
                 .build();
-        System.out.println("sending out request "+request.toString());
-        System.out.println("request content header "+request.header("Content-Type"));
 
-        System.out.println("form body" + bodyToString(request));
+        LOGGER.info("sending out request "+request.toString());
+        LOGGER.info("request content header "+request.header("Content-Type"));
+        LOGGER.info("form body" + bodyToString(request));
 
         Call call = httpClient.newCall(request);
         try {
             Response response = call.execute();
-            System.out.println("Response"+response);
+            LOGGER.info("Response: "+response.body().string());
+            return response;
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Exception happened"+e);
+            LOGGER.info("Exception happened"+e);
+            return null;
         }
     }
 

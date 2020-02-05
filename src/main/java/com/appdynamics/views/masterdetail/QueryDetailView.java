@@ -86,7 +86,7 @@ public class QueryDetailView extends Div implements AfterNavigationObserver {
 //        editorDiv.add(buttonLayout);
 //    }
     public void runQuery(ClickEvent event){
-        service.runQuery(index1.getValue(), index2.getValue(), key.getValue(), query.getValue());
+        service.doAggregation(index1.getValue(), index2.getValue(), key.getValue(), query.getValue());
     }
 
     private void addFormItem(Div wrapper, FormLayout formLayout,

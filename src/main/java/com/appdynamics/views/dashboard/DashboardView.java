@@ -107,6 +107,8 @@ public class DashboardView extends Div implements AfterNavigationObserver {
 
         // First chart
         Configuration configuration = monthlyVisitors.getConfiguration();
+
+
         configuration.addSeries(new ListSeries("Tokyo", 49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4,
                 194.1, 95.6, 54.4));
         configuration.addSeries(
