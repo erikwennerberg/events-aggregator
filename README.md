@@ -21,3 +21,19 @@ To run from the command line, use `mvn spring-boot:run` and open [http://localho
  - Read the documentation in [vaadin.com/docs](https://vaadin.com/docs).
  - For a bigger Vaadin application example, check out the Full Stack App starter from [vaadin.com/start](https://vaadin.com/start).
 # events-aggregator
+
+The events aggregagator is a spring boot/vaadin app that lets you aggregate the data for two AppDynamics event service indices given a common key, and then visualize the data in one of the vaadin widgets.
+
+Inputs:
+Index1|Index2|Primary key| Query
+
+Output:
+Combined/joined data set of index1 and index2 given the primary key
+
+Example:
+Index1=Browser records
+Index2=NPS data
+Primary key = customer id
+Query = Select response time from aggregated_dataset
+Widget = timeseries for response time
+
