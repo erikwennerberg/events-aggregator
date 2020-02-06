@@ -3,8 +3,14 @@ package com.appdynamics.backend;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import okhttp3.*;
 import okio.Buffer;
 import org.slf4j.Logger;
@@ -30,20 +36,53 @@ public class BackendService {
     public static final MediaType BLANK
             = MediaType.parse("");
 
-
-    public void doAggregation(String index1, String index2, String key, String query){
-
+    private final Gson gson = new Gson();
 
 
-        Response resultSet1 = runQuery(index1);
-        //LOGGER.info("resultSet1: " + resultSet1.body().string());
-        Response resultSet2 = runQuery(index2);
-        //LOGGER.info("resultSet2: " + resultSet2.body().string());
+    public void doAggregation(String index1, String index2, String key1,String key2, String query){
+
+        try {
+            Response resultSet1 = runQuery(index1);
+           // JsonObject resultSet1Json = new Gson().fromJson(resultSet1.body().string(), JsonObject.class);
+            JsonArray resultSet1Json = gson.fromJson(resultSet1.body().string(), JsonArray.class);
 
 
+
+
+
+            int keyFieldPosition1 = findKeyFieldPosition(key1, resultSet1Json);
+
+            //loop over results and rebuild results with keys
+
+
+
+            Response resultSet2 = runQuery(index2);
+            JsonArray resultSet2Json = gson.fromJson(resultSet2.body().string(), JsonArray.class);
+
+            int keyFieldPosition2 = findKeyFieldPosition(key2, resultSet2Json);
+
+
+
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
     }
+
+//    Map<Object, Object> parseJsonObject(JsonArray keys, JsonArray values) {
+//        Map result = new HashMap();
+//        for (int i = 0; i < keys.size(); i++) {
+//            result.put(parseJsonObject(keys.get(i)), parseJsonObject(values.get(i)));
+//
+//        }
+//    }
+//
+//    Map<Object, Object> parseJsonObject(JsonElement element) {
+//
+//    }
 
     Response runQuery(String index) {
 
@@ -51,8 +90,8 @@ public class BackendService {
         LOGGER.info("running query");
 
         Date now = new Date();
-        Date datePastHour = new Date(System.currentTimeMillis() - (1 * 60 * 60 * 1000));
-
+        //Date datePastHour = new Date(System.currentTimeMillis() - (1 * 60 * 60 * 1000));
+        Date datePastHour = new Date(System.currentTimeMillis() - (10 * 60 * 1000));
         //String datePastHourString = datePastHour.getTime().
 
         //append date
@@ -70,14 +109,12 @@ public class BackendService {
                 .post(body)
                 .build();
 
-        LOGGER.info("sending out request "+request.toString());
         LOGGER.info("request content header "+request.header("Content-Type"));
-        LOGGER.info("form body" + bodyToString(request));
 
         Call call = httpClient.newCall(request);
         try {
             Response response = call.execute();
-            LOGGER.info("Response: "+response.body().string());
+            //LOGGER.info("Response: "+response.body().string());
             return response;
         } catch (IOException e) {
             e.printStackTrace();
@@ -86,16 +123,20 @@ public class BackendService {
         }
     }
 
-    private static String bodyToString(final Request request){
+    private int findKeyFieldPosition(String key1, JsonArray array){
+        //find key position- find transactionId for transactions under fields
+        JsonArray fields = array.get(0).getAsJsonObject().get("fields").getAsJsonArray();
 
-        try {
-            final Request copy = request.newBuilder().build();
-            final Buffer buffer = new Buffer();
-            copy.body().writeTo(buffer);
-            return buffer.readUtf8();
-        } catch (final IOException e) {
-            return "did not work";
+        //traverse results everywhere an id is found look for in result set 2 and append
+        int keyPosition = 0;
+        for(JsonElement element : fields) {
+            keyPosition++;
+            if(element.getAsJsonObject().get("field").getAsString().equals(key1)){
+                break;
+            }
         }
+        return keyPosition;
     }
+
 
 }

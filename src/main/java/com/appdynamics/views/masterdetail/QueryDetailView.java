@@ -37,7 +37,8 @@ public class QueryDetailView extends Div implements AfterNavigationObserver {
 
     private TextField index1 = new TextField();
     private TextField index2 = new TextField();
-    private TextField key = new TextField();
+    private TextField key1 = new TextField();
+    private TextField key2 = new TextField();
     private TextField query = new TextField();
 
     private Button run = new Button("Run");
@@ -52,7 +53,8 @@ public class QueryDetailView extends Div implements AfterNavigationObserver {
         FormLayout formLayout = new FormLayout();
         addFormItem(editorDiv, formLayout, index1, "Index1");
         addFormItem(editorDiv, formLayout, index2, "Index2");
-        addFormItem(editorDiv, formLayout, key, "Joining Key");
+        addFormItem(editorDiv, formLayout, key1, "Joining Key 1");
+        addFormItem(editorDiv, formLayout, key2, "Joining Key 2");
         addFormItem(editorDiv, formLayout, query, "ADQL Query");
 
 
@@ -86,7 +88,7 @@ public class QueryDetailView extends Div implements AfterNavigationObserver {
 //        editorDiv.add(buttonLayout);
 //    }
     public void runQuery(ClickEvent event){
-        service.doAggregation(index1.getValue(), index2.getValue(), key.getValue(), query.getValue());
+        service.doAggregation(index1.getValue(), index2.getValue(), key1.getValue(), key2.getValue(),query.getValue());
     }
 
     private void addFormItem(Div wrapper, FormLayout formLayout,
